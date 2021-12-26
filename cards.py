@@ -1,3 +1,4 @@
+import json
 from random import randint
 
 from icontract import require
@@ -83,7 +84,31 @@ def get_name(no: int, reversed=False):
     return name + " (перевёрнуто)" if reversed else name
 
 
-def get_random_card() -> tuple:
+GENERAL = "Общее значение"
+LOVE = "Значение в любви и отношениях"
+SITUATION = "Значение в ситуации и вопросе"
+CARD_OF_THE_DAY = "Значение карты дня"
+ADVICE = "Совет карты"
+
+SECTIONS = {
+    GENERAL: True,
+    LOVE: True,
+    SITUATION: True,
+    CARD_OF_THE_DAY: False,
+    ADVICE: False,
+}
+
+
+def get_random_card(sect) -> tuple:
     no = randint(0, CARDS - 1)
-    reversed = bool(randint(0, 1))
-    return get_name(no, reversed), get_image(im, no, reversed)
+    if SECTIONS[sect]:
+        reversed = bool(randint(0, 1))
+        meaning = meanings[sect]["reversed" if reversed else "upright"]
+    else:
+        reversed = False
+        meaning = meanings[sect]
+    return get_name(no, reversed), get_image(im, no, reversed), meaning
+
+
+with open("meanings.json") as f:
+    meanings = json.load(f)

@@ -4,7 +4,7 @@ from io import BytesIO
 
 from telegram.ext import CommandHandler, Updater
 
-from cards import get_random_card
+from cards import SITUATION, get_random_card
 
 # Enable logging
 logging.basicConfig(
@@ -45,10 +45,12 @@ def main():
 
 
 def situation(update, context):
-    name, card = get_random_card()
+    name, card, meaning = get_random_card(SITUATION)
     bytes = BytesIO()
     card.save(bytes, "PNG")
     context.bot.send_photo(update.message.chat.id, photo=bytes.getvalue(), caption=name)
+    for row in meaning:
+        context.bot.send_text(row)
 
 
 if __name__ == "__main__":
