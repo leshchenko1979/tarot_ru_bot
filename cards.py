@@ -101,7 +101,7 @@ SECTIONS = {
 
 def get_random_card(sect) -> tuple:
     no = randint(0, CARDS - 1)
-    name = get_name(no)
+    name = get_name(no).lower()
     if SECTIONS[sect]:
         reversed = bool(randint(0, 1))
         meaning = meanings[name][sect]["reversed" if reversed else "upright"]
@@ -113,3 +113,6 @@ def get_random_card(sect) -> tuple:
 
 with open("meanings.json") as f:
     meanings = json.load(f)
+    for key in meanings:
+        meanings[key.lower()] = meanings[key]
+        del meanings[key]
