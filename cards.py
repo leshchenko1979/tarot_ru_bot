@@ -113,6 +113,7 @@ def get_random_card(sect) -> tuple:
 
 with open("meanings.json") as f:
     meanings = json.load(f)
-    for key in meanings:
+    keys = list(meanings.keys())
+    for key in keys:
         meanings[key.lower()] = meanings[key]
         del meanings[key]
