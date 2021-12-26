@@ -7,11 +7,11 @@ im = Image.open("card_images.jpg")
 
 CARDS_PER_ROW = 10
 CARD_SIZE_X = 129
-CARD_SIZE_Y = 228
+CARD_SIZE_Y = 227
 BASE_X = 92
 BASE_Y = 22
 GUTTERS_X = (10, 6, 6, 6, 7, 6, 14, 7, 9)
-GUTTERS_Y = (7, 7, 7, 7, 7, 7, 5)
+GUTTERS_Y = (8, 8, 8, 8, 8, 8, 6)
 CARDS = 78
 
 
