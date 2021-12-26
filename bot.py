@@ -5,14 +5,14 @@ from io import BytesIO
 
 from cards import get_random_card
 
-PORT = int(os.environ.get("PORT", 5000))
-
 # Enable logging
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
+
+PORT = 80
 TOKEN = os.environ["TOKEN"]
 
 
