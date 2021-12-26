@@ -101,12 +101,13 @@ SECTIONS = {
 
 def get_random_card(sect) -> tuple:
     no = randint(0, CARDS - 1)
+    name = get_name(no)
     if SECTIONS[sect]:
         reversed = bool(randint(0, 1))
-        meaning = meanings[sect]["reversed" if reversed else "upright"]
+        meaning = meanings[name][sect]["reversed" if reversed else "upright"]
     else:
         reversed = False
-        meaning = meanings[sect]
+        meaning = meanings[name][sect]
     return get_name(no, reversed), get_image(im, no, reversed), meaning
 
 
