@@ -3,7 +3,7 @@ from random import randint
 from icontract import require
 from PIL import Image
 
-im = Image.open("1.jpg")
+im = Image.open("card_images.jpg")
 
 CARDS_PER_ROW = 10
 CARD_SIZE_X = 129
