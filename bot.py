@@ -48,7 +48,7 @@ def main():
 
 
 def send_random_card(bot, chat_id, section):
-    name, card, meaning = get_random_card(SITUATION)
+    name, card, meaning = get_random_card(section)
     bytes = BytesIO()
     card.save(bytes, "PNG")
     bot.send_photo(chat_id, photo=bytes.getvalue(), caption=name)
