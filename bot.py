@@ -4,7 +4,7 @@ from io import BytesIO
 
 from telegram.ext import CommandHandler, Updater
 
-from cards import SITUATION, get_random_card
+from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
 
 # Enable logging
 logging.basicConfig(
@@ -29,6 +29,9 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("situation", situation))
+    dp.add_handler(CommandHandler("love", love))
+    dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day))
+    dp.add_handler(CommandHandler("advice", advice))
 
     # Start the Bot
     updater.start_webhook(
@@ -44,13 +47,28 @@ def main():
     updater.idle()
 
 
-def situation(update, context):
+def send_random_card(bot, chat_id, section):
     name, card, meaning = get_random_card(SITUATION)
     bytes = BytesIO()
     card.save(bytes, "PNG")
-    context.bot.send_photo(update.message.chat.id, photo=bytes.getvalue(), caption=name)
+    bot.send_photo(chat_id, photo=bytes.getvalue(), caption=name)
     for row in meaning:
-        context.bot.send_message(update.message.chat.id, row)
+        bot.send_message(chat_id, row)
+
+def situation(update, context):
+    send_random_card(context.bot, update.message.chat.id, SITUATION)
+
+
+def love(update, context):
+    send_random_card(context.bot, update.message.chat.id, LOVE)
+
+
+def card_of_the_day(update, context):
+    send_random_card(context.bot, update.message.chat.id, CARD_OF_THE_DAY)
+
+
+def advice(update, context):
+    send_random_card(context.bot, update.message.chat.id, ADVICE)
 
 
 if __name__ == "__main__":
