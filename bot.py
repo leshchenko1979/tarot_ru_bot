@@ -1,7 +1,8 @@
 import logging
-from telegram.ext import Updater, CommandHandler
 import os
 from io import BytesIO
+
+from telegram.ext import CommandHandler, Updater
 
 from cards import get_random_card
 
@@ -12,7 +13,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-PORT = os.environ.get('PORT', 8443)
+PORT = os.environ.get("PORT", 8443)
 TOKEN = os.environ["TOKEN"]
 
 
@@ -47,7 +48,7 @@ def situation(update, context):
     name, card = get_random_card()
     bytes = BytesIO()
     card.save(bytes, "PNG")
-    context.bot.send_photo(update.message.chat.id, photo=bytes, caption=name)
+    context.bot.send_photo(update.message.chat.id, photo=bytes.getvalue(), caption=name)
 
 
 if __name__ == "__main__":
