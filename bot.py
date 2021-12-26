@@ -50,7 +50,7 @@ def situation(update, context):
     card.save(bytes, "PNG")
     context.bot.send_photo(update.message.chat.id, photo=bytes.getvalue(), caption=name)
     for row in meaning:
-        context.bot.send_text(row)
+        context.bot.send_message(update.message.chat.id, row)
 
 
 if __name__ == "__main__":
