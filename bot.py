@@ -47,7 +47,7 @@ def situation(update, context):
     name, card = get_random_card()
     bytes = BytesIO()
     card.save(bytes, "PNG")
-    context.bot.send_photo(update.chat.id, photo=bytes, caption=name)
+    context.bot.send_photo(update.message.chat.id, photo=bytes, caption=name)
 
 
 if __name__ == "__main__":
