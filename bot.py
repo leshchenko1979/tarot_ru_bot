@@ -28,6 +28,7 @@ def main():
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("situation", situation))
     dp.add_handler(CommandHandler("love", love))
     dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day))
@@ -47,6 +48,20 @@ def main():
     updater.idle()
 
 
+def start(update, context):
+    msg = "\n\n".join(
+        [
+            "/start - вывести это сообщение",
+            "/situation - расклад на ситуацию",
+            "/love - расклад на отношения",
+            "/card_of_the_day - карта дня",
+            "/advice - совет карты",
+            "Связаться с автором: @leshchenko1979"
+        ]
+    )
+    context.bot.send_message(update.message.chat.id, msg)
+
+
 def send_random_card(bot, chat_id, section):
     name, card, meaning = get_random_card(section)
     bytes = BytesIO()
@@ -54,6 +69,7 @@ def send_random_card(bot, chat_id, section):
     bot.send_photo(chat_id, photo=bytes.getvalue(), caption=name)
     for row in meaning:
         bot.send_message(chat_id, row)
+
 
 def situation(update, context):
     send_random_card(context.bot, update.message.chat.id, SITUATION)
