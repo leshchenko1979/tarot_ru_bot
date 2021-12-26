@@ -12,7 +12,7 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-PORT = 80
+PORT = os.environ.get('PORT', 8443)
 TOKEN = os.environ["TOKEN"]
 
 
