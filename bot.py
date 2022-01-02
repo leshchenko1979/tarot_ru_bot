@@ -12,12 +12,12 @@ from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
 
 # Enable logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+    format="%(message)s", level=logging.INFO
 )
 
 logger = logging.getLogger(__name__)
 
-PORT = os.environ.get("PORT", 8443)
+PORT = 8443
 TOKEN = os.environ["TOKEN"]
 POSTGRES = os.environ["POSTGRES"]
 
@@ -69,12 +69,16 @@ async def start(message: types.Message):
 
 @dp.message_handler(commands=["situation", "love", "card_of_the_day", "advice"])
 async def process_command(message: types.Message):
+    command = message.get_command().lower()
+
+    logger.debug("Processing command %s", command)
+
     section = {
         "situation": SITUATION,
         "love": LOVE,
         "card_of_the_day": CARD_OF_THE_DAY,
         "advice": ADVICE,
-    }[message.get_command().lower()]
+    }[command]
 
     chat_id = message.chat.id
 
