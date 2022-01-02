@@ -98,8 +98,8 @@ def update_last_request(id):
     with conn.cursor() as cur:
         cur.execute(
             """
-            INSERT INTO users (id, last_request) VALUES (%(id), %(last_request))
-            ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)
+            INSERT INTO users (id, last_request) VALUES (%(id)s, %(last_request)s)
+            ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)s
             """,
             {"id": id, "last_request": datetime.now(timezone.utc)},
         )
