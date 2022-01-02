@@ -17,9 +17,9 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 
-PORT = 8443
+PORT = os.environ.get("PORT", 8443)
 TOKEN = os.environ["TOKEN"]
-POSTGRES = os.environ["POSTGRES"]
+POSTGRES = os.environ["DATABASE_URL"]
 
 APP_URL = "https://tarot-ru-bot.herokuapp.com/"
 
@@ -43,7 +43,7 @@ start_webhook(
     on_startup=on_startup,
     on_shutdown=on_shutdown,
     skip_updates=False,
-    host="127.0.0.1",
+    host="0.0.0.0",
     port=PORT,
 )
 
@@ -95,7 +95,6 @@ async def process_command(message: types.Message):
 
 
 async def update_last_request(id):
-    global conn
     with conn.cursor() as cur:
         cur.execute(
             """
