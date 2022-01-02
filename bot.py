@@ -4,8 +4,7 @@ from datetime import datetime, timezone
 from io import BytesIO
 
 import psycopg
-from telegram.ext import CommandHandler, MessageHandler, Updater
-from telegram.ext.filters import Filters
+from telegram.ext import CommandHandler, Updater
 
 from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
 
@@ -18,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 PORT = os.environ.get("PORT", 8443)
 TOKEN = os.environ["TOKEN"]
-POSTGRES = os.environ["POSTGRES"]
+POSTGRES = os.environ["DATABASE_URL"]
 
 
 def main():
