@@ -31,10 +31,12 @@ async def on_startup(dp):
     global conn
     conn = psycopg.connect(POSTGRES)
     await bot.set_webhook(APP_URL)
+    logger.info("Start-up completed")
 
 
 async def on_shutdown(dp):
     conn.close()
+    logger.info("Shotdown completed")
 
 
 start_webhook(
@@ -43,7 +45,7 @@ start_webhook(
     on_startup=on_startup,
     on_shutdown=on_shutdown,
     skip_updates=False,
-    host="0.0.0.0",
+    host="localhost",
     port=PORT,
 )
 
