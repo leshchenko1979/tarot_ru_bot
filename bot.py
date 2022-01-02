@@ -31,15 +31,12 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # Каждая команда должна обновлять время последнего контакта (группа команд 0)
-    dp.add_handler(MessageHandler(Filters.all, update_last_request), 0)
-
-    # Регистрируем обработчики команд (группа команд 1)
-    dp.add_handler(CommandHandler("start", start), 1)
-    dp.add_handler(CommandHandler("situation", situation), 1)
-    dp.add_handler(CommandHandler("love", love), 1)
-    dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day), 1)
-    dp.add_handler(CommandHandler("advice", advice), 1)
+    # Регистрируем обработчики команд
+    dp.add_handler(CommandHandler("start", start))
+    dp.add_handler(CommandHandler("situation", situation))
+    dp.add_handler(CommandHandler("love", love))
+    dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day))
+    dp.add_handler(CommandHandler("advice", advice))
 
     # Start the Bot
     updater.start_webhook(
@@ -77,6 +74,8 @@ def send_random_card(bot, chat_id, section):
     for row in meaning:
         bot.send_message(chat_id, row)
 
+    update_last_request(chat_id)
+
 
 def situation(update, context):
     send_random_card(context.bot, update.message.chat.id, SITUATION)
@@ -94,7 +93,7 @@ def advice(update, context):
     send_random_card(context.bot, update.message.chat.id, ADVICE)
 
 
-def update_last_request(update, context):
+def update_last_request(id):
     global conn
     with conn.cursor() as cur:
         cur.execute(
@@ -102,7 +101,7 @@ def update_last_request(update, context):
             INSERT INTO users (id, last_request) VALUES (%(id), %(last_request))
             ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)
             """,
-            {"id": context.user.id, "last_request": datetime.now(timezone.utc)},
+            {"id": id, "last_request": datetime.now(timezone.utc)},
         )
 
 
