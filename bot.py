@@ -22,7 +22,7 @@ WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
 WEBAPP_HOST = "0.0.0.0"
 WEBAPP_PORT = int(os.environ.get("PORT", 8443))
 
-POSTGRES = os.environ["DATABASE_URL"]
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 # Enable logging
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ async def on_startup(dp):
     await bot.set_webhook(WEBHOOK_URL)
 
     global conn
-    conn = psycopg.connect(POSTGRES)
+    conn = psycopg.connect(DATABASE_URL)
 
 
 async def on_shutdown(dp):
@@ -70,10 +70,10 @@ async def process_command(message: types.Message):
     logger.info("Processing command %s", command)
 
     section = {
-        "situation": SITUATION,
-        "love": LOVE,
-        "card_of_the_day": CARD_OF_THE_DAY,
-        "advice": ADVICE,
+        "/situation": SITUATION,
+        "/love": LOVE,
+        "/card_of_the_day": CARD_OF_THE_DAY,
+        "/advice": ADVICE,
     }[command]
 
     chat_id = message.chat.id
@@ -107,7 +107,7 @@ start_webhook(
     webhook_path=WEBHOOK_PATH,
     on_startup=on_startup,
     on_shutdown=on_shutdown,
-    skip_updates=True,
+    skip_updates=False,
     host=WEBAPP_HOST,
     port=WEBAPP_PORT,
 )
