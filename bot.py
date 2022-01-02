@@ -30,23 +30,23 @@ dp = Dispatcher(bot)
 async def on_startup(dp):
     global conn
     conn = psycopg.connect(POSTGRES)
-    await bot.set_webhook(APP_URL)
+    await bot.set_webhook(APP_URL + TOKEN)
     logger.info("Start-up completed")
 
 
 async def on_shutdown(dp):
     conn.close()
-    logger.info("Shotdown completed")
+    logger.info("Shutdown completed")
 
 
 start_webhook(
     dispatcher=dp,
-    webhook_path="",
+    webhook_path="/" + TOKEN,
     on_startup=on_startup,
     on_shutdown=on_shutdown,
     skip_updates=False,
     host="0.0.0.0",
-    port=PORT,
+    port=int(PORT),
 )
 
 
