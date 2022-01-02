@@ -1,4 +1,4 @@
 pillow
 icontract
-python-telegram-bot
+aiogram
 psycopg[binary]
