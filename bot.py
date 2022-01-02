@@ -21,7 +21,7 @@ PORT = os.environ.get("PORT", 8443)
 TOKEN = os.environ["TOKEN"]
 POSTGRES = os.environ["POSTGRES"]
 
-WEBHOOK_URL = "https://tarot-ru-bot.herokuapp.com/" + TOKEN
+APP_URL = "https://tarot-ru-bot.herokuapp.com/"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher(bot)
@@ -30,7 +30,7 @@ dp = Dispatcher(bot)
 async def on_startup(dp):
     global conn
     conn = psycopg.connect(POSTGRES)
-    await bot.set_webhook(WEBHOOK_URL)
+    await bot.set_webhook(APP_URL)
 
 
 async def on_shutdown(dp):
@@ -42,7 +42,7 @@ start_webhook(
     webhook_path="/",
     on_startup=on_startup,
     on_shutdown=on_shutdown,
-    skip_updates=True,
+    skip_updates=False,
     host="0.0.0.0",
     port=PORT,
 )
