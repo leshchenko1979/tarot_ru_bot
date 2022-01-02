@@ -39,11 +39,11 @@ async def on_shutdown(dp):
 
 start_webhook(
     dispatcher=dp,
-    webhook_path="/",
+    webhook_path="",
     on_startup=on_startup,
     on_shutdown=on_shutdown,
     skip_updates=False,
-    host="0.0.0.0",
+    host="127.0.0.1",
     port=PORT,
 )
 
