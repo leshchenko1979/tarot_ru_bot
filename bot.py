@@ -31,11 +31,6 @@ logging.basicConfig(format="%(message)s", level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
-# просто повтор сказанного пользователем
-@dp.message_handler()
-async def echo(message: types.Message):
-    await bot.send_message(message.chat.id, message.text)
-
 
 async def on_startup(dp):
     await bot.delete_webhook(dp)
@@ -49,18 +44,7 @@ async def on_shutdown(dp):
     conn.close()
 
 
-start_webhook(
-    dispatcher=dp,
-    webhook_path=WEBHOOK_PATH,
-    on_startup=on_startup,
-    on_shutdown=on_shutdown,
-    skip_updates=True,
-    host=WEBAPP_HOST,
-    port=WEBAPP_PORT,
-)
-
-
-@dp.message_handler(commands=["start"])
+@dp.message_handler(commands="start")
 async def start(message: types.Message):
     msg = "\n\n".join(
         [
@@ -116,3 +100,14 @@ async def update_last_request(id):
             {"id": id, "last_request": datetime.now(timezone.utc)},
         )
     conn.commit()
+
+
+start_webhook(
+    dispatcher=dp,
+    webhook_path=WEBHOOK_PATH,
+    on_startup=on_startup,
+    on_shutdown=on_shutdown,
+    skip_updates=True,
+    host=WEBAPP_HOST,
+    port=WEBAPP_PORT,
+)
