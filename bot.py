@@ -36,12 +36,12 @@ async def on_startup(dp):
     await bot.delete_webhook(dp)
     await bot.set_webhook(WEBHOOK_URL)
 
-    global conn
-    conn = psycopg.connect(DATABASE_URL)
+    global aconn
+    aconn = await psycopg.AsyncConnection.connect(DATABASE_URL)
 
 
 async def on_shutdown(dp):
-    conn.close()
+    await aconn.close()
 
 
 @dp.message_handler(commands="start")
@@ -91,15 +91,15 @@ async def process_command(message: types.Message):
 
 
 async def update_last_request(id):
-    with conn.cursor() as cur:
-        cur.execute(
+    async with aconn.cursor() as cur:
+        await cur.execute(
             """
             INSERT INTO users (id, last_request) VALUES (%(id)s, %(last_request)s)
             ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)s
             """,
             {"id": id, "last_request": datetime.now(timezone.utc)},
         )
-    conn.commit()
+    await aconn.commit()
 
 
 start_webhook(
