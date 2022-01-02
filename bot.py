@@ -45,7 +45,7 @@ start_webhook(
     on_startup=on_startup,
     on_shutdown=on_shutdown,
     skip_updates=False,
-    host="localhost",
+    host="0.0.0.0",
     port=PORT,
 )
 
