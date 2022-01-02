@@ -103,7 +103,7 @@ def update_last_request(id):
             """,
             {"id": id, "last_request": datetime.now(timezone.utc)},
         )
-        cur.commit()
+    conn.commit()
 
 
 conn = None
