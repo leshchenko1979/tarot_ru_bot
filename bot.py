@@ -1,8 +1,11 @@
 import logging
 import os
+from datetime import datetime, timezone
 from io import BytesIO
 
-from telegram.ext import CommandHandler, Updater
+import psycopg
+from telegram.ext import CommandHandler, MessageHandler, Updater
+from telegram.ext.filters import Filters
 
 from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
 
@@ -15,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 PORT = os.environ.get("PORT", 8443)
 TOKEN = os.environ["TOKEN"]
+POSTGRES = os.environ["POSTGRES"]
 
 
 def main():
@@ -27,12 +31,15 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
 
-    # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("situation", situation))
-    dp.add_handler(CommandHandler("love", love))
-    dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day))
-    dp.add_handler(CommandHandler("advice", advice))
+    # Каждая команда должна обновлять время последнего контакта (группа команд 0)
+    dp.add_handler(MessageHandler(Filters.all, update_last_request), 0)
+
+    # Регистрируем обработчики команд (группа команд 1)
+    dp.add_handler(CommandHandler("start", start), 1)
+    dp.add_handler(CommandHandler("situation", situation), 1)
+    dp.add_handler(CommandHandler("love", love), 1)
+    dp.add_handler(CommandHandler("card_of_the_day", card_of_the_day), 1)
+    dp.add_handler(CommandHandler("advice", advice), 1)
 
     # Start the Bot
     updater.start_webhook(
@@ -56,7 +63,7 @@ def start(update, context):
             "/love - расклад на отношения",
             "/card_of_the_day - карта дня",
             "/advice - совет карты",
-            "Связаться с автором: @leshchenko1979"
+            "Связаться с автором: @leshchenko1979",
         ]
     )
     context.bot.send_message(update.message.chat.id, msg)
@@ -87,5 +94,20 @@ def advice(update, context):
     send_random_card(context.bot, update.message.chat.id, ADVICE)
 
 
+def update_last_request(update, context):
+    global conn
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO users (id, last_request) VALUES (%(id), %(last_request))
+            ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)
+            """,
+            {"id": context.user.id, "last_request": datetime.now(timezone.utc)},
+        )
+
+
+conn = None
+
 if __name__ == "__main__":
-    main()
+    with psycopg.connect(POSTGRES) as conn:
+        main()
