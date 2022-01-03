@@ -149,7 +149,12 @@ async def switch_cotd(message: types.Message):
 async def save_send_cotd_setting(id, new_setting):
     async with aconn.cursor() as cur:
         await cur.execute(
-            "UPDATE users SET send_cotd = %(new_setting)s WHERE id = %(id)s",
+            """
+            UPDATE users SET
+                send_cotd = %(new_setting)s,
+                last_cotd = now()
+            WHERE id = %(id)s
+            """,
             {"new_setting": new_setting, "id": id},
         )
     await aconn.commit()
