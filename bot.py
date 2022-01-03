@@ -63,13 +63,18 @@ async def send_cotd():
             for id in ids:
                 await wait(
                     [
-                        send_random_card(id, CARD_OF_THE_DAY),
+                        send_daily_cotd(id),
                         update_last_cotd(id, cur),
                         sleep(2),
                     ],
                     return_when=ALL_COMPLETED,
                 )
         await sleep(3600)  # wait for an hour then repeat
+
+
+async def send_daily_cotd(id):
+    await bot.send_message(id, "Ваша сегодняшняя карта дня:")
+    await send_random_card(id, CARD_OF_THE_DAY)
 
 
 @dp.message_handler(commands="start")
