@@ -1,6 +1,6 @@
 import logging
 import os
-from asyncio import ALL_COMPLETED, run, sleep, wait
+from asyncio import ALL_COMPLETED, create_task, sleep, wait
 from datetime import datetime, timezone
 from io import BytesIO
 
@@ -33,18 +33,6 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
 
-async def start_wh():
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        skip_updates=False,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
-
-
 async def on_startup(dp):
     await bot.delete_webhook(dp)
     await bot.set_webhook(WEBHOOK_URL)
@@ -52,13 +40,15 @@ async def on_startup(dp):
     global aconn
     aconn = await psycopg.AsyncConnection.connect(DATABASE_URL)
 
+    create_task(send_cotd())
+
 
 async def on_shutdown(dp):
     await aconn.close()
 
 
 async def send_cotd():
-    await sleep(10)  # wait until the connection is established
+    logger.info("Starting sending cards of the day")
 
     while True:
         async with aconn.cursor() as cur:
@@ -148,4 +138,12 @@ async def update_last_cotd(id, cur):
     await aconn.commit()
 
 
-run(wait([start_wh(), send_cotd()], return_when=ALL_COMPLETED))
+start_webhook(
+    dispatcher=dp,
+    webhook_path=WEBHOOK_PATH,
+    on_startup=on_startup,
+    on_shutdown=on_shutdown,
+    skip_updates=False,
+    host=WEBAPP_HOST,
+    port=WEBAPP_PORT,
+)
