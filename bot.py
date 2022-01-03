@@ -1,6 +1,6 @@
 import logging
 import os
-from asyncio import ALL_COMPLETED, create_task, sleep, wait
+from asyncio import create_task, gather, sleep
 from datetime import datetime, timezone
 from io import BytesIO
 
@@ -61,13 +61,10 @@ async def send_cotd():
             ids = await cur.fetchall()
 
             for id in ids:
-                await wait(
-                    [
-                        send_daily_cotd(id),
-                        update_last_cotd(id, cur),
-                        sleep(2),
-                    ],
-                    return_when=ALL_COMPLETED,
+                await gather(
+                    send_daily_cotd(id),
+                    update_last_cotd(id, cur),
+                    sleep(2),
                 )
         await sleep(3600)  # wait for an hour then repeat
 
@@ -142,18 +139,15 @@ async def switch_cotd(message: types.Message):
 
     id = message.chat.id
 
-    await wait(
-        [
-            save_send_cotd_setting(id, new_send_cotd_setting),
-            bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label),
-            update_last_request(id),
-        ],
-        return_when=ALL_COMPLETED,
+    await gather(
+        save_send_cotd_setting(id, new_send_cotd_setting),
+        bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label),
+        update_last_request(id),
     )
 
 
 async def save_send_cotd_setting(id, new_setting):
-    with aconn.cursor() as cur:
+    async with aconn.cursor() as cur:
         await cur.execute(
             "UPDATE users SET send_cotd = %(new_setting)s WHERE id = %(id)s",
             {"new_cotd": new_setting, "id": id},
