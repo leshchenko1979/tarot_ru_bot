@@ -74,13 +74,18 @@ async def send_cotd():
 
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
-    msg = "\n\n".join(
+    msg = "\n".join(
         [
             "/start - вывести это сообщение",
+            "",
             "/situation - расклад на ситуацию",
             "/love - расклад на отношения",
             "/card_of_the_day - карта дня",
             "/advice - совет карты",
+            "",
+            "/cotd_on - включить ежедневную отправку карты дня",
+            "/cotd_off - отключить ежедневную отправку карты дня",
+            "",
             "Связаться с автором: @leshchenko1979",
         ]
     )
@@ -119,6 +124,27 @@ async def send_random_card(id, section):
 
     for row in meaning:
         await bot.send_message(id, row)
+
+
+@dp.message_handler(commands=["cotd_on", "cotd_off"])
+async def switch_cotd(message: types.Message):
+    command = message.get_command().lower()
+
+    new_send_cotd_setting, new_state_label = {
+        "/cotd_on": (1, "включена"),
+        "/cotd_off": (0, "отключена"),
+    }[command]
+
+    id = message.chat.id
+
+    with aconn.cursor() as cur:
+        await cur.execute(
+            "UPDATE users SET send_cotd = %(new_cotd)s WHERE id = %(id)s",
+            {"new_cotd": new_send_cotd_setting, "id": id},
+        )
+    await aconn.commit()
+
+    await bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label)
 
 
 async def update_last_request(id):
