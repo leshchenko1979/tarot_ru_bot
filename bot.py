@@ -150,7 +150,7 @@ async def save_send_cotd_setting(id, new_setting):
     async with aconn.cursor() as cur:
         await cur.execute(
             "UPDATE users SET send_cotd = %(new_setting)s WHERE id = %(id)s",
-            {"new_cotd": new_setting, "id": id},
+            {"new_setting": new_setting, "id": id},
         )
     await aconn.commit()
 
