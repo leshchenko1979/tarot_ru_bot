@@ -148,4 +148,4 @@ async def update_last_cotd(id, cur):
     await aconn.commit()
 
 
-run(wait([start_wh(), send_cotd()]), return_when=ALL_COMPLETED)
+run(wait([start_wh(), send_cotd()], return_when=ALL_COMPLETED))
