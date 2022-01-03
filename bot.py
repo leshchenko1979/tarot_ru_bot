@@ -142,14 +142,23 @@ async def switch_cotd(message: types.Message):
 
     id = message.chat.id
 
+    await wait(
+        [
+            save_send_cotd_setting(id, new_send_cotd_setting),
+            bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label),
+            update_last_request(id),
+        ],
+        return_when=ALL_COMPLETED,
+    )
+
+
+async def save_send_cotd_setting(id, new_setting):
     with aconn.cursor() as cur:
         await cur.execute(
-            "UPDATE users SET send_cotd = %(new_cotd)s WHERE id = %(id)s",
-            {"new_cotd": new_send_cotd_setting, "id": id},
+            "UPDATE users SET send_cotd = %(new_setting)s WHERE id = %(id)s",
+            {"new_cotd": new_setting, "id": id},
         )
     await aconn.commit()
-
-    await bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label)
 
 
 async def update_last_request(id):
