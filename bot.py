@@ -72,6 +72,7 @@ async def send_cotd():
 async def send_daily_cotd(id):
     await bot.send_message(id, "Ваша сегодняшняя карта дня:")
     await send_random_card(id, CARD_OF_THE_DAY)
+    await bot.send_message(id, "(Отключить ежедневную карту дня: /cotd_off)")
 
 
 @dp.message_handler(commands="start")
@@ -113,8 +114,7 @@ async def process_command(message: types.Message):
 
     id = message.chat.id
 
-    await send_random_card(id, section)
-    await update_last_request(id)
+    await gather(send_random_card(id, section), update_last_request(id))
 
 
 async def send_random_card(id, section):
@@ -164,10 +164,11 @@ async def update_last_request(id):
     async with aconn.cursor() as cur:
         await cur.execute(
             """
-            INSERT INTO users (id, last_request) VALUES (%(id)s, %(last_request)s)
-            ON CONFLICT (id) DO UPDATE SET last_request = %(last_request)s
+            INSERT INTO users (id, last_request, last_cotd, send_cotd)
+            VALUES (%(id)s, %(now)s, %(now)s, 1)
+            ON CONFLICT (id) DO UPDATE SET last_request = %(now)s
             """,
-            {"id": id, "last_request": datetime.now(timezone.utc)},
+            {"id": id, "now": datetime.now(timezone.utc)},
         )
     await aconn.commit()
 
