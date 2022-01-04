@@ -176,7 +176,9 @@ async def update_last_request(id):
 
 
 async def update_last_cotd(id, cur):
-    await cur.execute("UPDATE users SET last_cotd = now() WHERE id = %s", id)
+    await cur.execute(
+        "UPDATE users SET last_cotd = now() WHERE id = %(id)s", {"id": id}
+    )
     await aconn.commit()
 
 
