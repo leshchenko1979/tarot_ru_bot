@@ -58,9 +58,11 @@ async def send_cotd():
                 WHERE last_cotd < now() - interval '1 day' AND send_cotd = 1
                 """
             )
-            ids = await cur.fetchall()
+            records = await cur.fetchall()
 
-            for id in ids:
+            for record in records:
+                id = record[0]
+                logger.info("Sending the card of the day to %s", id)
                 await gather(
                     send_daily_cotd(id),
                     update_last_cotd(id, cur),
