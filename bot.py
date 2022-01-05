@@ -183,7 +183,7 @@ async def update_last_request(id):
             VALUES (%(id)s, %(now)s, %(now)s, 1)
             ON CONFLICT (id) DO UPDATE SET last_request = %(now)s
             """,
-            {"id": id, "now": datetime.now(timezone.utc)},
+            {"id": id, "now": dt.datetime.now(dt.timezone.utc)},
         )
     await aconn.commit()
 
