@@ -81,7 +81,7 @@ async def send_cotd():
                 )
 
         next_morning = this_morning + dt.timedelta(days=1)
-        await sleep(next_morning - now)
+        await sleep((next_morning - now).total_seconds())
 
 
 async def send_daily_cotd(id):
