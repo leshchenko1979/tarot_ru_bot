@@ -180,10 +180,10 @@ async def update_last_request(id):
         await cur.execute(
             """
             INSERT INTO users (id, last_request, last_cotd, send_cotd)
-            VALUES (%(id)s, %(now)s, %(now)s, 1)
-            ON CONFLICT (id) DO UPDATE SET last_request = %(now)s
+            VALUES (%(id)s, now(), now(), 1)
+            ON CONFLICT (id) DO UPDATE SET last_request = now()
             """,
-            {"id": id, "now": dt.datetime.now(dt.timezone.utc)},
+            {"id": id},
         )
     await aconn.commit()
 
