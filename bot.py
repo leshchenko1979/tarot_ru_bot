@@ -1,7 +1,7 @@
 import logging
 import os
 from asyncio import create_task, gather, sleep
-from datetime import datetime, timezone
+import datetime as dt
 from io import BytesIO
 
 import psycopg
@@ -48,19 +48,30 @@ async def on_shutdown(dp):
 
 
 async def send_cotd():
-    logger.info("Starting sending cards of the day")
-
     while True:
-        async with aconn.cursor() as cur:
-            await cur.execute(
-                """
-                SELECT id FROM users
-                WHERE last_cotd < now() - interval '1 day' AND send_cotd = 1
-                """
-            )
-            records = await cur.fetchall()
+        logger.info("Starting sending cards of the day")
 
-            for record in records:
+        now = dt.datetime.now(dt.timezone.utc)
+        this_morning = dt.datetime.combine(now.date(), dt.time(6, 0), dt.timezone.utc)
+
+        if now < this_morning:
+            break
+
+        async with aconn.cursor() as cur:
+            while True:
+                await cur.execute(
+                    """
+                    SELECT id FROM users
+                    WHERE last_cotd < %(this_morning)s AND send_cotd = 1
+                    LIMIT 1
+                    """,
+                    {"this_morning": this_morning},
+                )
+                record = await cur.fetchone()
+
+                if not record:
+                    break
+
                 id = record[0]
                 logger.info("Sending the card of the day to %s", id)
                 await gather(
@@ -68,7 +79,9 @@ async def send_cotd():
                     update_last_cotd(id, cur),
                     sleep(2),
                 )
-        await sleep(3600)  # wait for an hour then repeat
+
+        next_morning = this_morning + dt.timedelta(days=1)
+        await sleep(next_morning - now)
 
 
 async def send_daily_cotd(id):
