@@ -87,7 +87,11 @@ async def send_cotd():
 async def send_daily_cotd(id):
     await bot.send_message(id, "Ваша сегодняшняя карта дня:")
     await send_random_card(id, CARD_OF_THE_DAY)
-    await bot.send_message(id, "(Отключить ежедневную карту дня: /cotd_off)")
+    await bot.send_message(
+        id,
+        "(Отключить ежедневную карту дня: /cotd_off)\n"
+        "Поделиться с другом: https://t.me/share/url?url=https%3A//t.me/tarot_ru_bot"
+    )
 
 
 @dp.message_handler(commands="start")
