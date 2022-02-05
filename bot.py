@@ -102,14 +102,19 @@ def get_cotd_markup():
         "Отключить ежедневную карту дня", callback_data="cotd_off"
     )
 
-    return InlineKeyboardMarkup([[get_share_button()], [turn_cotd_off]])
+    markup = InlineKeyboardMarkup()
+    markup.add(get_share_button())
+    markup.add(turn_cotd_off)
+    return markup
 
 
 def get_basic_markup():
-    return InlineKeyboardMarkup([[get_share_button()]])
+    markup = InlineKeyboardMarkup()
+    markup.add(get_share_button())
+    return markup
 
 
-@dp.callback_query_handler(lambda cbq: cbq.data == "cotd_off")
+@dp.callback_query_handler(text="cotd_off")
 async def turn_cotd_off(cbq: types.CallbackQuery):
     await gather(
         bot.answer_callback_query(cbq.id), switch_cotd(cbq.from_user.id, "/cotd_off")
