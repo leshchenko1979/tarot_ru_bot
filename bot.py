@@ -1,12 +1,13 @@
+import datetime as dt
 import logging
 import os
 from asyncio import create_task, gather, sleep
-import datetime as dt
 from io import BytesIO
 
 import psycopg
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.executor import start_webhook
 
 from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
@@ -86,11 +87,32 @@ async def send_cotd():
 
 async def send_daily_cotd(id):
     await bot.send_message(id, "Ваша сегодняшняя карта дня:")
-    await send_random_card(id, CARD_OF_THE_DAY)
-    await bot.send_message(
-        id,
-        "(Отключить ежедневную карту дня: /cotd_off)\n"
-        "Поделиться с другом: https://t.me/share/url?url=https%3A//t.me/tarot_ru_bot"
+    await send_random_card(id, CARD_OF_THE_DAY, get_cotd_markup())
+
+
+def get_share_button():
+    return InlineKeyboardButton(
+        "Поделиться с другом",
+        url="https://t.me/share/url?url=https%3A//t.me/tarot_ru_bot",
+    )
+
+
+def get_cotd_markup():
+    turn_cotd_off = InlineKeyboardButton(
+        "Отключить ежедневную карту дня", callback_data="cotd_off"
+    )
+
+    return InlineKeyboardMarkup([[get_share_button()], [turn_cotd_off]])
+
+
+def get_basic_markup():
+    return InlineKeyboardMarkup([[get_share_button()]])
+
+
+@dp.callback_query_handler(lambda cbq: cbq.data == "cotd_off")
+async def turn_cotd_off(cbq: types.CallbackQuery):
+    await gather(
+        bot.answer_callback_query(cbq.id), switch_cotd(cbq.from_user.id, "/cotd_off")
     )
 
 
@@ -133,30 +155,37 @@ async def process_command(message: types.Message):
 
     id = message.chat.id
 
-    await gather(send_random_card(id, section), update_last_request(id))
+    await gather(
+        send_random_card(id, section, get_basic_markup()), update_last_request(id)
+    )
 
 
-async def send_random_card(id, section):
+async def send_random_card(id, section, markup):
     name, card, meaning = get_random_card(section)
 
     bytes = BytesIO()
     card.save(bytes, "PNG")
     await bot.send_photo(id, photo=bytes.getvalue(), caption=name)
 
-    for row in meaning:
-        await bot.send_message(id, row)
+    for i, row in enumerate(meaning):
+        if i < len(meaning) - 1:
+            await bot.send_message(id, row)
+        else:
+            await bot.send_message(id, row, reply_markup=markup)
 
 
 @dp.message_handler(commands=["cotd_on", "cotd_off"])
-async def switch_cotd(message: types.Message):
+async def process_cotd_command(message: types.Message):
+    id = message.chat.id
     command = message.get_command().lower()
+    await switch_cotd(id, command)
 
+
+async def switch_cotd(id, command: str):
     new_send_cotd_setting, new_state_label = {
         "/cotd_on": (1, "включена"),
         "/cotd_off": (0, "отключена"),
     }[command]
-
-    id = message.chat.id
 
     await gather(
         save_send_cotd_setting(id, new_send_cotd_setting),
