@@ -168,10 +168,10 @@ async def send_random_card(id, section, markup):
     await bot.send_photo(id, photo=bytes.getvalue(), caption=name)
 
     for i, row in enumerate(meaning):
-        if i < len(meaning) - 1:
-            await bot.send_message(id, row)
-        else:
+        if i == len(meaning) - 1 and markup:
             await bot.send_message(id, row, reply_markup=markup)
+        else:
+            await bot.send_message(id, row)
 
 
 @dp.message_handler(commands=["cotd_on", "cotd_off"])
