@@ -4,6 +4,7 @@ import os
 from asyncio import create_task, gather, sleep
 from io import BytesIO
 
+import aiogram
 import psycopg
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
@@ -86,9 +87,11 @@ async def send_cotd():
 
 
 async def send_daily_cotd(id):
-    await bot.send_message(id, "Ваша сегодняшняя карта дня:")
-    await send_random_card(id, CARD_OF_THE_DAY, get_cotd_markup())
-
+    try:
+        await bot.send_message(id, "Ваша сегодняшняя карта дня:")
+        await send_random_card(id, CARD_OF_THE_DAY, get_cotd_markup())
+    except aiogram.utils.exceptions.BotBlocked:
+        logger.info(f"Bot blocked by {id}")
 
 def get_share_button():
     return InlineKeyboardButton(
