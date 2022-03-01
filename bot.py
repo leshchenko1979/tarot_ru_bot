@@ -36,13 +36,18 @@ dp = Dispatcher(bot)
 
 
 async def on_startup(dp):
+    await gather(set_up_webhook(dp), set_up_db_connection())
+    create_task(send_cotd())
+
+
+async def set_up_webhook(dp):
     await bot.delete_webhook(dp)
     await bot.set_webhook(WEBHOOK_URL)
 
+
+async def set_up_db_connection():
     global aconn
     aconn = await psycopg.AsyncConnection.connect(DATABASE_URL)
-
-    create_task(send_cotd())
 
 
 async def on_shutdown(dp):
@@ -92,6 +97,7 @@ async def send_daily_cotd(id):
         await send_random_card(id, CARD_OF_THE_DAY, get_cotd_markup())
     except aiogram.utils.exceptions.BotBlocked:
         logger.info(f"Bot blocked by {id}")
+
 
 def get_share_button():
     return InlineKeyboardButton(
