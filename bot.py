@@ -65,7 +65,7 @@ async def send_cotd():
         if now < this_morning:
             break
 
-        for chat_id in db.next_daily_cotd(this_morning):
+        async for chat_id in db.next_daily_cotd(this_morning):
             logger.info("Sending the card of the day to %s", chat_id)
             await gather(
                 send_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
