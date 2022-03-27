@@ -5,6 +5,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
+
 def get_share_button():
     return InlineKeyboardButton(
         "Поделиться с другом",
@@ -32,7 +33,19 @@ def get_basic_markup():
 processed_msg_ids = set()
 
 
-def needs_processing(message: Message):
+def needs_processing(message: Message) -> bool:
+    """Check if the message has not already been processed.
+
+    Also registers the message submitted as processed.
+
+    Args:
+        message (Message): the message to check.
+
+    Returns:
+        bool: Yes if the message has not already been processed, else False.
+    """
+    logger.info(f"Processing message_id {message.message_id} requested")
+
     if message.message_id in processed_msg_ids:
         logger.info("This message has already been processed")
         return False
