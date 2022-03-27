@@ -31,26 +31,36 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 logger = logging.getLogger(__name__)
 logging.basicConfig(format="%(message)s", level=logging.INFO)
 
+logger.info("Starting the main module")
+
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
 
 async def on_startup(dp):
+    logger.info("`on_startup` called")
+
     await gather(set_up_webhook(dp), set_up_db_connection())
     create_task(send_cotd())
 
 
 async def set_up_webhook(dp):
+    logger.info("`set_up_webhook` called")
+
     await bot.delete_webhook(dp)
     await bot.set_webhook(WEBHOOK_URL)
 
 
 async def set_up_db_connection():
+    logger.info("`set_up_db_connection` called")
+
     global aconn
     aconn = await psycopg.AsyncConnection.connect(DATABASE_URL)
 
 
 async def on_shutdown(dp):
+    logger.info("`on_shutdown` called")
+
     await aconn.close()
 
 
@@ -79,11 +89,11 @@ async def send_cotd():
                 if not record:
                     break
 
-                id = record[0]
-                logger.info("Sending the card of the day to %s", id)
+                chat_id = record[0]
+                logger.info("Sending the card of the day to %s", chat_id)
                 await gather(
-                    send_daily_cotd(id),
-                    update_last_cotd(id, cur),
+                    send_daily_cotd(chat_id),
+                    update_last_cotd(chat_id, cur),
                     sleep(2),
                 )
 
@@ -125,6 +135,8 @@ def get_basic_markup():
 
 @dp.callback_query_handler(text="cotd_off")
 async def turn_cotd_off(cbq: types.CallbackQuery):
+    logger.info("`turn_cotd_off` called")
+
     await gather(
         bot.answer_callback_query(cbq.id), switch_cotd(cbq.from_user.id, "/cotd_off")
     )
@@ -132,6 +144,8 @@ async def turn_cotd_off(cbq: types.CallbackQuery):
 
 @dp.message_handler(commands="start")
 async def start(message: types.Message):
+    logger.info("`start` called")
+
     msg = "\n".join(
         [
             "/start - вывести это сообщение",
@@ -156,6 +170,8 @@ async def start(message: types.Message):
 
 @dp.message_handler(commands=["situation", "love", "card_of_the_day", "advice"])
 async def process_command(message: types.Message):
+    logger.info("`process_command` called")
+
     command = message.get_command().lower()
 
     logger.info("Processing command %s", command)
@@ -167,48 +183,49 @@ async def process_command(message: types.Message):
         "/advice": ADVICE,
     }[command]
 
-    id = message.chat.id
+    chat_id = message.chat.id
 
     await gather(
-        send_random_card(id, section, get_basic_markup()), update_last_request(id)
+        send_random_card(chat_id, section, get_basic_markup()),
+        update_last_request(chat_id),
     )
 
 
-async def send_random_card(id, section, markup):
+async def send_random_card(chat_id, section, markup):
     name, card, meaning = get_random_card(section)
 
-    bytes = BytesIO()
-    card.save(bytes, "PNG")
-    await bot.send_photo(id, photo=bytes.getvalue(), caption=name)
+    card_image = BytesIO()
+    card.save(card_image, "PNG")
+    await bot.send_photo(chat_id, photo=card_image.getvalue(), caption=name)
 
     for i, row in enumerate(meaning):
         if i == len(meaning) - 1 and markup:
-            await bot.send_message(id, row, reply_markup=markup)
+            await bot.send_message(chat_id, row, reply_markup=markup)
         else:
-            await bot.send_message(id, row)
+            await bot.send_message(chat_id, row)
 
 
 @dp.message_handler(commands=["cotd_on", "cotd_off"])
 async def process_cotd_command(message: types.Message):
-    id = message.chat.id
+    chat_id = message.chat.id
     command = message.get_command().lower()
-    await switch_cotd(id, command)
+    await switch_cotd(chat_id, command)
 
 
-async def switch_cotd(id, command: str):
+async def switch_cotd(chat_id, command: str):
     new_send_cotd_setting, new_state_label = {
         "/cotd_on": (1, "включена"),
         "/cotd_off": (0, "отключена"),
     }[command]
 
     await gather(
-        save_send_cotd_setting(id, new_send_cotd_setting),
-        bot.send_message(id, "Ежедневная отправка карты дня %s" % new_state_label),
-        update_last_request(id),
+        save_send_cotd_setting(chat_id, new_send_cotd_setting),
+        bot.send_message(chat_id, f"Ежедневная отправка карты дня {new_state_label}"),
+        update_last_request(chat_id),
     )
 
 
-async def save_send_cotd_setting(id, new_setting):
+async def save_send_cotd_setting(chat_id, new_setting):
     async with aconn.cursor() as cur:
         await cur.execute(
             """
@@ -217,12 +234,12 @@ async def save_send_cotd_setting(id, new_setting):
                 last_cotd = now()
             WHERE id = %(id)s
             """,
-            {"new_setting": new_setting, "id": id},
+            {"new_setting": new_setting, "id": chat_id},
         )
     await aconn.commit()
 
 
-async def update_last_request(id):
+async def update_last_request(chat_id):
     async with aconn.cursor() as cur:
         await cur.execute(
             """
@@ -230,14 +247,14 @@ async def update_last_request(id):
             VALUES (%(id)s, now(), now(), 1)
             ON CONFLICT (id) DO UPDATE SET last_request = now()
             """,
-            {"id": id},
+            {"id": chat_id},
         )
     await aconn.commit()
 
 
-async def update_last_cotd(id, cur):
+async def update_last_cotd(chat_id, cur):
     await cur.execute(
-        "UPDATE users SET last_cotd = now() WHERE id = %(id)s", {"id": id}
+        "UPDATE users SET last_cotd = now() WHERE id = %(id)s", {"id": chat_id}
     )
     await aconn.commit()
 
