@@ -81,7 +81,7 @@ def get_name(no: int, reversed=False):
         rank = MINOR_RANKS[offset % len(MINOR_RANKS)]
         suit = MINOR_SUITS[offset // len(MINOR_RANKS)]
         name = " ".join([rank, suit])
-    return name + " (перевёрнуто)" if reversed else name
+    return f'{name} (перевёрнуто)' if reversed else name
 
 
 GENERAL = "Общее значение"
@@ -103,12 +103,12 @@ def get_random_card(sect) -> tuple:
     no = randint(0, CARDS - 1)
     name = get_name(no).lower()
     if SECTIONS[sect]:
-        reversed = bool(randint(0, 1))
-        meaning = meanings[name][sect]["reversed" if reversed else "upright"]
+        is_reversed = bool(randint(0, 1))
+        meaning = meanings[name][sect]["reversed" if is_reversed else "upright"]
     else:
-        reversed = False
+        is_reversed = False
         meaning = meanings[name][sect]
-    return get_name(no, reversed), get_image(im, no, reversed), meaning
+    return get_name(no, reversed), get_image(im, no, is_reversed), meaning
 
 
 with open("meanings.json") as f:
