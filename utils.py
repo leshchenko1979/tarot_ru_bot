@@ -1,4 +1,6 @@
+import functools
 import logging
+
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 # Enable logging
@@ -52,3 +54,14 @@ def needs_processing(message: Message) -> bool:
     else:
         processed_msg_ids.add(message.message_id)
         return True
+
+
+def log_call(func):
+    """Decorator for logging function calls."""
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kw):
+        logger.info(f"Calling {func.__name__}():")
+        return await func(*args, **kw)
+
+    return wrapper

@@ -35,30 +35,26 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
 
+@utils.log_call
 async def on_startup(dp):
-    logger.info("`on_startup` called")
-
     await gather(set_up_webhook(dp), db.set_up_db_connection())
-    create_task(send_cotd())
+    create_task(send_all_daily_cotds())
 
 
+@utils.log_call
 async def set_up_webhook(dp):
-    logger.info("`set_up_webhook` called")
-
     await bot.delete_webhook(dp)
     await bot.set_webhook(WEBHOOK_URL)
 
 
+@utils.log_call
 async def on_shutdown(dp):
-    logger.info("`on_shutdown` called")
-
     await db.close_db_connection()
 
 
-async def send_cotd():
+@utils.log_call
+async def send_all_daily_cotds():
     while True:
-        logger.info("Starting sending cards of the day")
-
         now = dt.datetime.now(dt.timezone.utc)
         this_morning = dt.datetime.combine(now.date(), dt.time(6, 0), dt.timezone.utc)
 
@@ -66,16 +62,16 @@ async def send_cotd():
             break
 
         async for chat_id in db.next_daily_cotd(this_morning):
-            logger.info("Sending the card of the day to %s", chat_id)
             await gather(
-                send_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
+                send_single_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
             )
 
         next_morning = this_morning + dt.timedelta(days=1)
         await sleep((next_morning - now).total_seconds())
 
 
-async def send_daily_cotd(chat_id):
+@utils.log_call
+async def send_single_daily_cotd(chat_id):
     try:
         await bot.send_message(chat_id, "Ваша сегодняшняя карта дня:")
         await send_random_card(chat_id, CARD_OF_THE_DAY, utils.get_cotd_markup())
@@ -98,9 +94,8 @@ async def send_random_card(chat_id, section, markup):
 
 
 @dp.callback_query_handler(text="cotd_off")
+@utils.log_call
 async def turn_cotd_off(cbq: types.CallbackQuery):
-    logger.info("`turn_cotd_off` called")
-
     if not utils.needs_processing(cbq.message):
         return
 
@@ -110,9 +105,8 @@ async def turn_cotd_off(cbq: types.CallbackQuery):
 
 
 @dp.message_handler(commands="start")
+@utils.log_call
 async def start(message: types.Message):
-    logger.info("`start` called")
-
     if not utils.needs_processing(message):
         return
 
@@ -138,9 +132,8 @@ async def start(message: types.Message):
 
 
 @dp.message_handler(commands=["situation", "love", "card_of_the_day", "advice"])
+@utils.log_call
 async def process_command(message: types.Message):
-    logger.info("`process_command` called")
-
     if not utils.needs_processing(message):
         return
 
@@ -164,9 +157,8 @@ async def process_command(message: types.Message):
 
 
 @dp.message_handler(commands=["cotd_on", "cotd_off"])
+@utils.log_call
 async def process_cotd_command(message: types.Message):
-    logger.info("`process_cotd_command` called")
-
     if not utils.needs_processing(message):
         return
 
