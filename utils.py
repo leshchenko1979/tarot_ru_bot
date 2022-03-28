@@ -32,7 +32,7 @@ def get_basic_markup():
     return markup
 
 
-processed_msg_ids = set()
+processed_messages = set()
 
 
 def needs_processing(message: Message) -> bool:
@@ -46,13 +46,16 @@ def needs_processing(message: Message) -> bool:
     Returns:
         bool: Yes if the message has not already been processed, else False.
     """
-    logger.info(f"Processing message_id {message.message_id} requested")
+    logger.info(
+        f"Processing message_id {message.message_id} "
+        "in chat {message.chat.id} requested"
+    )
 
-    if message.message_id in processed_msg_ids:
+    if (message.message_id, message.chat.id) in processed_messages:
         logger.info("This message has already been processed")
         return False
     else:
-        processed_msg_ids.add(message.message_id)
+        processed_messages.add((message.message_id, message.chat.id))
         return True
 
 
