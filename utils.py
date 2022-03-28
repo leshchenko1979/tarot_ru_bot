@@ -48,7 +48,7 @@ def needs_processing(message: Message) -> bool:
     """
     logger.info(
         f"Processing message_id {message.message_id} "
-        "in chat {message.chat.id} requested"
+        f"in chat {message.chat.id} requested"
     )
 
     if (message.message_id, message.chat.id) in processed_messages:
