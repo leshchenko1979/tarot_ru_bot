@@ -108,7 +108,7 @@ def get_random_card(sect) -> tuple:
     else:
         is_reversed = False
         meaning = meanings[name][sect]
-    return get_name(no, reversed), get_image(im, no, is_reversed), meaning
+    return get_name(no, is_reversed), get_image(im, no, is_reversed), meaning
 
 
 with open("meanings.json") as f:
