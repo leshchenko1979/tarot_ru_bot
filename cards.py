@@ -31,8 +31,8 @@ MAJOR_NAMES = [
     "Шут",
     "Маг",
     "Жрица",
-    "Императрица",
     "Император",
+    "Императрица",
     "Жрец",
     "Влюбленные",
     "Колесница",
@@ -90,7 +90,7 @@ SITUATION = "Значение в ситуации и вопросе"
 CARD_OF_THE_DAY = "Значение карты дня"
 ADVICE = "Совет карты"
 
-SECTIONS = {
+CAN_BE_REVERSED = {
     GENERAL: True,
     LOVE: True,
     SITUATION: True,
@@ -102,7 +102,7 @@ SECTIONS = {
 def get_random_card(sect) -> tuple:
     no = randint(0, CARDS - 1)
     name = get_name(no).lower()
-    if SECTIONS[sect]:
+    if CAN_BE_REVERSED[sect]:
         is_reversed = bool(randint(0, 1))
         meaning = meanings[name][sect]["reversed" if is_reversed else "upright"]
     else:
@@ -111,7 +111,7 @@ def get_random_card(sect) -> tuple:
     return get_name(no, is_reversed), get_image(im, no, is_reversed), meaning
 
 
-with open("meanings.json") as f:
+with open("meanings.json", encoding="utf-8") as f:
     meanings = json.load(f)
     keys = list(meanings.keys())
     for key in keys:
