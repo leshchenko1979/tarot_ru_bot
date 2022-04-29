@@ -3,6 +3,8 @@ import os
 
 import psycopg
 
+import utils
+
 DATABASE_URL = os.environ["DATABASE_URL"]
 
 
@@ -44,6 +46,35 @@ async def next_daily_cotd(this_morning: dt.datetime):
                 yield record[0]
             else:
                 break
+
+
+async def cotd_sent_today(chat_id: int):
+    """Check if the user has already received his card of the day today.
+
+    Args:
+        chat_id (int): user chat_id
+    """
+    last_cotd = await load_last_cotd(chat_id)
+
+    return last_cotd >= utils.start_of_day_MSK() if last_cotd else False
+
+
+async def load_last_cotd(chat_id: int):
+    """Load the time when the user has last received his card of the day.
+
+    Args:
+        chat_id (int): user chat_id
+    """
+    QUERY = "SELECT last_cotd FROM users WHERE id = %(id)s"
+
+    async with aconn.cursor() as cur:
+        await cur.execute(QUERY, {"id": chat_id})
+
+    record = await cur.fetchone()
+    if record:
+        return record[0]
+    else:
+        return None
 
 
 async def save_send_cotd_setting(chat_id: int, new_setting: int):

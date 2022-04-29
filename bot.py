@@ -150,6 +150,13 @@ async def process_command(message: types.Message):
 
     chat_id = message.chat.id
 
+    if db.cotd_sent_today(chat_id):
+        await bot.send_message(
+            chat_id,
+            "Карта дня уже отправлялась сегодня. Не гневите судьбу, дождитесь завтра!",
+        )
+        return
+
     await gather(
         send_random_card(chat_id, section, utils.get_basic_markup()),
         db.update_last_request(chat_id),

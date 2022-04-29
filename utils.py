@@ -1,3 +1,4 @@
+import datetime as dt
 import functools
 import logging
 
@@ -68,3 +69,9 @@ def log_call(func):
         return await func(*args, **kw)
 
     return wrapper
+
+
+def start_of_day_MSK():
+    """Return the time of the start of the day in Moscow time."""
+    now_MSK = dt.datetime.now(dt.timezone(dt.timedelta(hours=3)))
+    return now_MSK.replace(hour=0, minute=0, second=0, microsecond=0)
