@@ -150,7 +150,7 @@ async def process_command(message: types.Message):
 
     chat_id = message.chat.id
 
-    if section == CARD_OF_THE_DAY and db.cotd_sent_today(chat_id):
+    if section == CARD_OF_THE_DAY and await db.cotd_sent_today(chat_id):
         await bot.send_message(
             chat_id,
             "Карта дня уже отправлялась сегодня. Не гневите судьбу, дождитесь завтра!",

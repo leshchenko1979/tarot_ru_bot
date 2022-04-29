@@ -69,12 +69,9 @@ async def load_last_cotd(chat_id: int):
 
     async with aconn.cursor() as cur:
         await cur.execute(QUERY, {"id": chat_id})
+        record = await cur.fetchone()
 
-    record = await cur.fetchone()
-    if record:
-        return record[0]
-    else:
-        return None
+    return record[0] if record else None
 
 
 async def save_send_cotd_setting(chat_id: int, new_setting: int):
