@@ -150,17 +150,22 @@ async def process_command(message: types.Message):
 
     chat_id = message.chat.id
 
-    if db.cotd_sent_today(chat_id):
+    if section == CARD_OF_THE_DAY and db.cotd_sent_today(chat_id):
         await bot.send_message(
             chat_id,
             "Карта дня уже отправлялась сегодня. Не гневите судьбу, дождитесь завтра!",
         )
         return
 
-    await gather(
+    ops = [
         send_random_card(chat_id, section, utils.get_basic_markup()),
         db.update_last_request(chat_id),
-    )
+    ]
+
+    if section == CARD_OF_THE_DAY:
+        ops.append(db.update_last_cotd(chat_id))
+
+    await gather(*ops)
 
 
 @dp.message_handler(commands=["cotd_on", "cotd_off"])
