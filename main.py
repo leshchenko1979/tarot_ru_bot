@@ -63,6 +63,7 @@ async def send_single_daily_cotd(chat_id):
         await send_random_card(chat_id, CARD_OF_THE_DAY, utils.get_cotd_markup())
     except aiogram.utils.exceptions.BotBlocked:
         logger.info(f"Bot blocked by {chat_id}")
+        await db.mark_blocked(chat_id)
 
 
 async def send_random_card(chat_id, section, markup):
