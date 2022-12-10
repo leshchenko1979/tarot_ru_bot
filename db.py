@@ -10,8 +10,7 @@ DATABASE_URI = os.environ["DATABASE_URI"]
 
 async def set_up_db_connection():
     global aconn
-    if not aconn:
-        aconn = await psycopg.AsyncConnection.connect(DATABASE_URI)
+    aconn = await psycopg.AsyncConnection.connect(DATABASE_URI)
 
 
 async def close_db_connection():
@@ -36,7 +35,7 @@ async def next_daily_cotd(this_morning: dt.datetime):
             await cur.execute(
                 """
                 SELECT id FROM users
-                WHERE last_cotd < %(this_morning)s AND send_cotd = 1
+                WHERE last_cotd < %(this_morning)s AND send_cotd = 1 AND blocked = 0
                 LIMIT 1
                 """,
                 {"this_morning": this_morning},
@@ -99,7 +98,7 @@ async def update_last_request(chat_id: int):
             """
             INSERT INTO users (id, last_request, last_cotd, send_cotd)
             VALUES (%(id)s, now(), now(), 1)
-            ON CONFLICT (id) DO UPDATE SET last_request = now()
+            ON CONFLICT (id) DO UPDATE SET last_request = now(), blocked = 0
             """,
             {"id": chat_id},
         )
@@ -115,6 +114,25 @@ async def update_last_cotd(chat_id: int, cur: psycopg.AsyncCursor = None):
             Defaults to None.
     """
     QUERY = "UPDATE users SET last_cotd = now() WHERE id = %(id)s"
+
+    if cur:
+        await cur.execute(QUERY, {"id": chat_id})
+    else:
+        async with aconn.cursor() as cur:
+            await cur.execute(QUERY, {"id": chat_id})
+
+    await aconn.commit()
+
+
+async def mark_blocked(chat_id: int, cur: psycopg.AsyncCursor = None):
+    """Mark user as blocked in the database.
+
+    Args:
+        chat_id (int): user chat_id
+        cur (psycopg.AsyncCursor, optional): cursor to use. If None, a new cursor is used.
+            Defaults to None.
+    """
+    QUERY = "UPDATE users SET blocked = 1 WHERE id = %(id)s"
 
     if cur:
         await cur.execute(QUERY, {"id": chat_id})

@@ -52,9 +52,6 @@ async def send_all_daily_cotds():
                 send_single_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
             )
 
-        next_morning = this_morning + dt.timedelta(days=1)
-        await sleep((next_morning - now).total_seconds())
-
 
 @utils.log_call
 async def send_single_daily_cotd(chat_id):
