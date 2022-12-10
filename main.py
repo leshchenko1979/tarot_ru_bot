@@ -34,8 +34,14 @@ async def main_async(request):
     await db.set_up_db_connection()
 
     Bot.set_current(dp.bot)
-    update = types.Update.to_object(request.get_json())
-    await gather(dp.process_update(update), send_all_daily_cotds())
+
+    if request.path == "/send_all_daily_cotds":
+        await send_all_daily_cotds()
+    else:
+        update = types.Update.to_object(request.get_json())
+        await dp.process_update(update)
+
+    await db.close_db_connection()
 
 
 @utils.log_call
