@@ -1,29 +1,19 @@
+import asyncio
 import datetime as dt
 import logging
 import os
-from asyncio import create_task, gather, sleep
+from asyncio import gather, sleep
 from io import BytesIO
 
 import aiogram
 from aiogram import Bot, types
 from aiogram.dispatcher import Dispatcher
-from aiogram.utils.executor import start_webhook
 
 import db
 import utils
 from cards import ADVICE, CARD_OF_THE_DAY, LOVE, SITUATION, get_random_card
 
 BOT_TOKEN = os.environ["TOKEN"]
-HEROKU_APP_NAME = "tarot-ru-bot"
-
-# webhook настройки
-WEBHOOK_HOST = f"https://{HEROKU_APP_NAME}.herokuapp.com"
-WEBHOOK_PATH = f"/webhook/{BOT_TOKEN}"
-WEBHOOK_URL = f"{WEBHOOK_HOST}{WEBHOOK_PATH}"
-
-# webserver настройки
-WEBAPP_HOST = "0.0.0.0"
-WEBAPP_PORT = int(os.environ.get("PORT", 8443))
 
 # Enable logging
 logger = logging.getLogger(__name__)
@@ -35,21 +25,17 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
 
 
-@utils.log_call
-async def on_startup(dp):
-    await gather(set_up_webhook(dp), db.set_up_db_connection())
-    create_task(send_all_daily_cotds())
+def main(request):
+    asyncio.run(main_async(request))
+    return "ok"
 
 
-@utils.log_call
-async def set_up_webhook(dp):
-    await bot.delete_webhook(dp)
-    await bot.set_webhook(WEBHOOK_URL)
+async def main_async(request):
+    await db.set_up_db_connection()
 
-
-@utils.log_call
-async def on_shutdown(dp):
-    await db.close_db_connection()
+    Bot.set_current(dp.bot)
+    update = types.Update.to_object(request.get_json())
+    await gather(dp.process_update(update), send_all_daily_cotds())
 
 
 @utils.log_call
@@ -190,14 +176,3 @@ async def switch_cotd(chat_id, command: str):
         db.save_send_cotd_setting(chat_id, new_send_cotd_setting),
         db.update_last_request(chat_id),
     )
-
-
-start_webhook(
-    dispatcher=dp,
-    webhook_path=WEBHOOK_PATH,
-    on_startup=on_startup,
-    on_shutdown=on_shutdown,
-    skip_updates=False,
-    host=WEBAPP_HOST,
-    port=WEBAPP_PORT,
-)

@@ -5,12 +5,13 @@ import psycopg
 
 import utils
 
-DATABASE_URL = os.environ["DATABASE_URL"]
+DATABASE_URI = os.environ["DATABASE_URI"]
 
 
 async def set_up_db_connection():
     global aconn
-    aconn = await psycopg.AsyncConnection.connect(DATABASE_URL)
+    if not aconn:
+        aconn = await psycopg.AsyncConnection.connect(DATABASE_URI)
 
 
 async def close_db_connection():
