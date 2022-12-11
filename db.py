@@ -1,5 +1,6 @@
 import datetime as dt
 import os
+from contextlib import asynccontextmanager
 
 import psycopg
 
@@ -8,13 +9,19 @@ import utils
 DATABASE_URI = os.environ["DATABASE_URI"]
 
 
-async def set_up_db_connection():
-    global aconn
-    aconn = await psycopg.AsyncConnection.connect(DATABASE_URI)
+@asynccontextmanager
+async def db_connection():
+    try:
+        global aconn
+        aconn = await psycopg.AsyncConnection.connect(DATABASE_URI)
+        yield
+    finally:
+        await aconn.close()
 
 
-async def close_db_connection():
-    await aconn.close()
+async def run_with_db(coro):
+    async with db_connection():
+        await coro
 
 
 async def next_daily_cotd(this_morning: dt.datetime):

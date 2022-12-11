@@ -23,25 +23,18 @@ logger.info("Starting the main module")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher(bot)
+Bot.set_current(dp.bot)
 
 
-def main(request):
-    asyncio.run(main_async(request))
+def process_update_main(request):
+    update = types.Update.to_object(request.get_json())
+    asyncio.run(db.run_with_db(dp.process_update(update)))
     return "ok"
 
 
-async def main_async(request):
-    await db.set_up_db_connection()
-
-    Bot.set_current(dp.bot)
-
-    if request.path == "/send_all_daily_cotds":
-        await send_all_daily_cotds()
-    else:
-        update = types.Update.to_object(request.get_json())
-        await dp.process_update(update)
-
-    await db.close_db_connection()
+def send_all_daily_cotds_main(request):
+    asyncio.run(db.run_with_db(send_all_daily_cotds()))
+    return "ok"
 
 
 @utils.log_call
@@ -57,6 +50,8 @@ async def send_all_daily_cotds():
             await gather(
                 send_single_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
             )
+
+        logger.info("All daily cotds sent")
 
 
 @utils.log_call

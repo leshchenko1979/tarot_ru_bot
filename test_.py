@@ -9,7 +9,7 @@ import db
 import cards
 
 
-@given(no=st.integers(min_value=0, max_value=cards.CARDS))
+@given(no=st.integers(min_value=0, max_value=cards.CARDS - 1))
 def test_get_name_and_image(no):
     cards.get_name(no)
     cards.get_image(cards.im, no)

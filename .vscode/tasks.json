@@ -4,9 +4,24 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "build",
+            "label": "Deploy process update",
             "type": "shell",
-            "command": "gcloud functions deploy tarot-bot --trigger-http --region=europe-west6 --memory=256Mb --runtime=python310 --entry-point=main"
+            "command": "gcloud functions deploy tarot-bot --trigger-http --region=europe-west6 --memory=256Mb --runtime=python310 --entry-point=process_update_main",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "Deploy send all cotds",
+            "type": "shell",
+            "command": "gcloud functions deploy tarot-bot-send-daily-cotds --trigger-http --region=europe-west6 --memory=256Mb --runtime=python310 --entry-point=send_all_daily_cotds_main --timeout=540",
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }
