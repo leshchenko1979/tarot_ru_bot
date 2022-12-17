@@ -64,9 +64,11 @@ def log_call(func):
     """Decorator for logging function calls."""
 
     @functools.wraps(func)
-    async def wrapper(*args, **kw):
-        logger.info(f"Calling {func.__name__}():")
-        return await func(*args, **kw)
+    async def wrapper(*args, **kwargs):
+        logger.info(f"Calling {func.__name__}({args}, {kwargs}):")
+        result = await func(*args, **kwargs)
+        logger.info(f"{func.__name__} result: {result}")
+        return result
 
     return wrapper
 

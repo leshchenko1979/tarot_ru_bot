@@ -27,8 +27,15 @@ Bot.set_current(dp.bot)
 
 
 def process_update_main(request):
-    update = types.Update.to_object(request.get_json())
-    asyncio.run(db.run_with_db(dp.process_update(update)))
+    json = None
+    try:
+        json = request.json
+        update = types.Update.to_object(json)
+        asyncio.run(db.run_with_db(dp.process_update(update)))
+
+    except Exception:
+        logger.exception({"json": json})
+
     return "ok"
 
 
@@ -39,19 +46,19 @@ def send_all_daily_cotds_main(request):
 
 @utils.log_call
 async def send_all_daily_cotds():
-    while True:
-        now = dt.datetime.now(dt.timezone.utc)
-        this_morning = dt.datetime.combine(now.date(), dt.time(6, 0), dt.timezone.utc)
+    now = dt.datetime.now(dt.timezone.utc)
+    this_morning = dt.datetime.combine(now.date(), dt.time(6, 0), dt.timezone.utc)
 
-        if now < this_morning:
-            break
+    if now < this_morning:
+        logger.info("All daily cotds have already been sent this morning")
+        return
 
-        async for chat_id in db.next_daily_cotd(this_morning):
-            await gather(
-                send_single_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
-            )
+    async for chat_id in db.next_daily_cotd(this_morning):
+        await gather(
+            send_single_daily_cotd(chat_id), db.update_last_cotd(chat_id), sleep(2)
+        )
 
-        logger.info("All daily cotds sent")
+    logger.info("All daily cotds sent")
 
 
 @utils.log_call
@@ -59,7 +66,10 @@ async def send_single_daily_cotd(chat_id):
     try:
         await bot.send_message(chat_id, "Ваша сегодняшняя карта дня:")
         await send_random_card(chat_id, CARD_OF_THE_DAY, utils.get_cotd_markup())
-    except aiogram.utils.exceptions.BotBlocked:
+    except (
+        aiogram.utils.exceptions.BotBlocked,
+        aiogram.utils.exceptions.UserDeactivated,
+    ):
         logger.info(f"Bot blocked by {chat_id}")
         await db.mark_blocked(chat_id)
 
